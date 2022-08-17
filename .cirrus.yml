@@ -1,37 +1,143 @@
-# $FreeBSD$
+freebsd_instance_template: &FREEBSD_INSTANCE_TEMPLATE
+  compute_engine_instance:
+    platform: freebsd
+    image_project: freebsd-org-cloud-dev
+    image: freebsd-14-0-current-amd64-v20220505
+    cpu: 8
+    memory: 32G
+    disk: 60
 
-compute_engine_instance:
-  # Image list available via
-  # gcloud compute images list --project freebsd-org-cloud-dev --no-standard-images
-  platform: freebsd
-  image_project: freebsd-org-cloud-dev
-  image: freebsd-13-1-release-amd64
-  cpu: 8
-  memory: 8G
-  disk: 40
+linux_instance_template: &LINUX_INSTANCE_TEMPLATE
+  compute_engine_instance:
+    # gcloud compute images list --project freebsd-org-cloud-de
+    platform: linux
+    image_project: cirrus-images
+    image: family/docker-kvm
+    cpu: 8
+    memory: 32G
+    disk: 100
+    nested_virtualization: true
 
-task:
+env:
+  ARTIFACT_DEST: artifact/${FBSD_BRANCH}/${GIT_COMMIT}/${TARGET}/${TARGET_ARCH}
+  CIRRUS_CLONE_DEPTH: 1
+  MAKEOBJDIRPREFIX: /tmp/obj
+  KERNCONF: GENERIC
+  MAKECONF: /dev/null
+  SRCCONF: /dev/null
+  JFLAG: 8
+  EXTRA_FLAGS:
+  WORKSPACE: $CIRRUS_WORKING_DIR
+  FBSD_BRANCH: $CIRRUS_BRANCH
+  GIT_COMMIT: $CIRRUS_CHANGE_IN_REPO
+  JOB_NAME: $CIRRUS_TASK_NAME
+  WITH_LIB32: 0
+  WITH_DEBUG: 1
+  WITH_TESTS: 1
+  TARGET: $TARGET_ARCH
+  META: ${WORKSPACE}/.cirrus-ci/scripts/test/meta/${TARGET_ARCH}-run.sh
+  QEMU_ARCH: $TARGET_ARCH
+  USE_QEMU: 1
+  USE_TEST_SUBR: |
+    disable-dtrace-tests.sh
+    disable-zfs-tests.sh
+    disable-notyet-tests.sh
+    run-kyua.sh
+
+jarvisBUILD_task:
+  << : *FREEBSD_INSTANCE_TEMPLATE
+  name: jarvis-BUILD-$TARGET_ARCH
+  only_if: $CIRRUS_REPO_OWNER != 'freebsd' && $CIRRUS_BRANCH == 'jarvis'
+  matrix:
+  - ARCH: $TARGET_ARCH
+    env:
+      TARGET_ARCH: amd64
+      WITH_LIB32: 1
+  - ARCH: $TARGET_ARCH
+    env:
+      TARGET_ARCH: i386
+      TARGET: i386
+  timeout_in: 120m
+  image_cache:
+    folder: work
+    fingerprint_key: ${GIT_COMMIT}-${TARGET}-${TARGET_ARCH}
+  build_world_kernel_script:
+    - sh .cirrus-ci/scripts/build/build-world-kernel.sh
+  build_test_image_script:
+    - sh .cirrus-ci/scripts/build/build-test_image.sh
+
+jarvisTEST_task:
+  << : *LINUX_INSTANCE_TEMPLATE
+  name: jarvis-TEST-$TARGET_ARCH
+  only_if: $CIRRUS_REPO_OWNER != 'freebsd' && $CIRRUS_BRANCH == 'jarvis'
+  depends_on: jarvis-BUILD-$TARGET_ARCH
+  matrix:
+  - ARCH: $TARGET_ARCH
+    env:
+      TARGET_ARCH: amd64
+      QEMU_ARCH: x86_64
+      QEMU_MACHINE: q35
+      QEMU_EXTRA_PARAM: -enable-kvm -cpu host
+  - ARCH: $TARGET_ARCH
+    env:
+      TARGET_ARCH: i386
+      TARGET: i386
+      QEMU_MACHINE: q35
+      QEMU_EXTRA_PARAM: -enable-kvm -cpu host
+  timeout_in: 120m
+  image_cache:
+    folder: work
+    fingerprint_key: ${GIT_COMMIT}-${TARGET}-${TARGET_ARCH}
+  pkg_install_script:
+    - apt update
+    - apt install -y curl qemu qemu-kvm qemu-system qemu-efi u-boot-qemu
+  test_script:
+    - ls -la ${WORKSPACE}/work
+    - sh .cirrus-ci/scripts/test/run-tests.sh
+  always:
+    junit_artifacts:
+      path: "artifact/**.xml"
+        #format: junit
+
+jarvisLINT_task:
+  << : *FREEBSD_INSTANCE_TEMPLATE
+  name: jarvis-LINT-$TARGET_ARCH
+  only_if: $CIRRUS_REPO_OWNER != 'freebsd' && $CIRRUS_BRANCH == 'jarvis'
+  depends_on: jarvis-BUILD-$TARGET_ARCH
+  matrix:
+  - ARCH: $TARGET_ARCH
+    env:
+      TARGET_ARCH: amd64
+  - ARCH: $TARGET_ARCH
+    env:
+      TARGET: i386
+      TARGET_ARCH: i386
+  timeout_in: 120m
+  build_kernel_lint_script:
+    - sh .cirrus-ci/scripts/build/build-kernel-LINT.sh
+
+smoke_task:
+  << : *FREEBSD_INSTANCE_TEMPLATE
+  only_if: $CIRRUS_REPO_OWNER == 'freebsd'
   matrix:
   - name: World and kernel amd64 build and boot smoke test
     env:
-      TARGET: amd64
       TARGET_ARCH: amd64
       TOOLCHAIN_PKG: llvm14
-  - name: World and kernel arm64 build and boot smoke test
+  - name: World and kernel i386 build and boot smoke test
     trigger_type: manual
     env:
-      TARGET: arm64
-      TARGET_ARCH: aarch64
+      TARGET: i386
+      TARGET_ARCH: i386
       TOOLCHAIN_PKG: llvm14
   - name: World and kernel gcc9 amd64 build and boot smoke test
     trigger_type: manual
     env:
-      TARGET: amd64
       TARGET_ARCH: amd64
       TOOLCHAIN_PKG: amd64-gcc9
   timeout_in: 120m
   install_script:
-  - sh .cirrus-ci/pkg-install.sh qemu-nox11 ${TOOLCHAIN_PKG}
+  - sh .cirrus-ci/scripts/build/pkg-install.sh qemu-nox11 ${TOOLCHAIN_PKG}
   setup_script:
   - uname -a
   - df -m
