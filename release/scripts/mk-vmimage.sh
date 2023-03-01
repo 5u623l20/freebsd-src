@@ -5,6 +5,9 @@
 # Portions of this software were developed by Muhammad Moinur Rahman
 # under sponsorship from the FreeBSD Foundation.
 #
+# Portions of this software were developed by Muhammad Moinur Rahman
+# under sponsorship from the FreeBSD Foundation.
+#
 # This software was developed by Glen Barber under sponsorship
 # from the FreeBSD Foundation.
 #
