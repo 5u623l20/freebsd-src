@@ -11,6 +11,8 @@ VMSIZE?=	5120m
 VMFS?=		ufs
 SWAPSIZE?=	1g
 VMBASE?=	vm
+PACKAGESYSTEM=no
+PACKAGESYSTEM_ARGS=-P ${PACKAGESYSTEM}
 
 VHD_DESC=	Azure, VirtualPC, Hyper-V, Xen disk image
 VMDK_DESC=	VMWare, VirtualBox disk image
@@ -18,6 +20,7 @@ QCOW2_DESC=	Qemu, KVM disk image
 RAW_DESC=	Unformatted raw disk image
 
 CLOUDWARE?=	BASIC-CI \
+		CI \
 		EC2 \
 		GCE \
 		OCI \
@@ -27,8 +30,11 @@ AZURE_FORMAT=	vhdf
 AZURE_DESC=	Microsoft Azure platform image
 AZURE_DISK=	${OSRELEASE}.${AZURE_FORMAT}
 BASIC-CI_FORMAT=	raw
-BASIC-CI_DESC=		Image for CI
+BASIC-CI_DESC=		Image for FreeDesktop CI
 BASIC-CI_DISK=	${OSRELEASE}.${BASIC-CI_FORMAT}
+CI_FORMAT=	raw
+CI_DESC=		Image for CI
+CI_DISK=	${OSRELEASE}.${CI_FORMAT}
 EC2_FORMAT=	raw
 EC2_DESC=	Amazon EC2 image
 EC2_DISK=	${OSRELEASE}.${EC2_FORMAT}
@@ -53,6 +59,15 @@ VAGRANT-VMWARE_DISK=	${OSRELEASE}.vmware.${VAGRANT_FORMAT}
 ${_V}!=	eval $$(awk '/^${_V}=/{print}' ${.CURDIR}/../sys/conf/newvers.sh); echo $$${_V}
 . endif
 .endfor
+
+.if defined(WITH_PACKAGESYSTEM) && !empty(WITH_PACKAGESYSTEM)
+.if !exists(${.OBJDIR}/base.txz) && (!exists(${.OBJDIR}/kernel.txz) || !exists(${.OBJDIR}/kernel-dbg.txz))
+.error A build with packagesystem is required first. You may have a wrong MAKEOBJDIRPREFIX
+.else
+PACKAGESYSTEM=yes
+PACKAGESYSTEM_ARGS+=-D ${.OBJDIR}
+.endif
+.endif
 
 emulator-portinstall:
 .if ${TARGET_ARCH} != ${MACHINE_ARCH}
@@ -93,8 +108,15 @@ cw-${_CW:tl}: emulator-portinstall
 		${.CURDIR}/scripts/mk-vmimage.sh \
 		-C ${.CURDIR}/tools/vmimage.subr -d ${.OBJDIR}/${.TARGET} -F ${VMFS} \
 		-i ${.OBJDIR}/${_CW:tl}.img -s ${VMSIZE} -f ${${_CW:tu}_FORMAT} \
-		-S ${WORLDDIR} -o ${.OBJDIR}/${${_CW:tu}IMAGE} -c ${${_CW:tu}CONF}
+		-S ${WORLDDIR} -o ${.OBJDIR}/${${_CW:tu}IMAGE} -c ${${_CW:tu}CONF} \
+		${PACKAGESYSTEM_ARGS}
 	touch ${.TARGET}
+. if defined(WITH_COMPRESSED_CLOUDWARE) && !empty(WITH_COMPRESSED_CLOUDWARE)
+.  for FORMAT in ${${_CW:tu}_FORMAT}
+	# Don't keep the originals.  There is a copy in ${.OBJDIR} if needed.
+	${XZ_CMD} ${.OBJDIR}/${_CW:tl}.${FORMAT}
+.  endfor
+. endif
 
 cw${_CW:tl}-package:
 	@# Special target to handle packaging cloud images in the formats

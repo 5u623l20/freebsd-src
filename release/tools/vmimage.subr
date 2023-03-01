@@ -51,20 +51,25 @@ vm_copy_base() {
 
 vm_install_base() {
 	# Installs the FreeBSD userland/kernel to the virtual machine disk.
+    if [ "${PACKAGESYSTEM}" == yes ]; then
+        for _DIST in $(ls ${OBJDIR}/*.txz); do
+            tar Jxf ${_DIST} -C ${DESTDIR}
+        done
+    else
+        cd ${WORLDDIR} && \
+            make DESTDIR=${DESTDIR} \
+            installworld installkernel distribution || \
+            err "\n\nCannot install the base system to ${DESTDIR}."
 
-	cd ${WORLDDIR} && \
-		make DESTDIR=${DESTDIR} \
-		installworld installkernel distribution || \
-		err "\n\nCannot install the base system to ${DESTDIR}."
-
-	# Bootstrap etcupdate(8) and mergemaster(8) databases.
-	mkdir -p ${DESTDIR}/var/db/etcupdate
-	etcupdate extract -B \
-		-M "TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}" \
-		-s ${WORLDDIR} -d ${DESTDIR}/var/db/etcupdate
-	sh ${WORLDDIR}/release/scripts/mm-mtree.sh -m ${WORLDDIR} \
-		-F "TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}" \
-		-D ${DESTDIR}
+        # Bootstrap etcupdate(8) and mergemaster(8) databases.
+        mkdir -p ${DESTDIR}/var/db/etcupdate
+        etcupdate extract -B \
+            -M "TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}" \
+            -s ${WORLDDIR} -d ${DESTDIR}/var/db/etcupdate
+        sh ${WORLDDIR}/release/scripts/mm-mtree.sh -m ${WORLDDIR} \
+            -F "TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}" \
+            -D ${DESTDIR}
+    fi
 
 	echo '# Custom /etc/fstab for FreeBSD VM images' \
 		> ${DESTDIR}/etc/fstab
@@ -172,8 +177,10 @@ vm_extra_pre_umount() {
 
 vm_extra_pkg_rmcache() {
 	if [ -e ${DESTDIR}/usr/local/sbin/pkg ]; then
+        mount -t devfs devfs ${DESTDIR}/dev
 		chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
 			/usr/local/sbin/pkg clean -y -a
+        umount_loop ${DESTDIR}/dev
 	fi
 
 	return 0
@@ -270,7 +277,7 @@ vm_create_disk() {
 		amd64:amd64 | i386:i386)
 			ESP=yes
 			BOOTPARTS="-b ${BOOTFILES}/i386/pmbr/pmbr \
-				   -p freebsd-boot/bootfs:=${BOOTFILES}/${X86GPTBOOTFILE}${BOOTPARTSOFFSET}"
+                -p freebsd-boot/bootfs:=${BOOTFILES}/${X86GPTBOOTFILE}${BOOTPARTSOFFSET}"
 			ROOTFSPART="-p ${FSPARTTYPE}/rootfs:=${VMBASE}"
 			MAKEFSARGS="$MAKEFSARGS -B little"
 			;;
@@ -331,4 +338,3 @@ vm_extra_create_disk() {
 
 	return 0
 }
-
