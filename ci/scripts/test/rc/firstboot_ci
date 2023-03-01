@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# KEYWORD: firstboot
+# PROVIDE: firstboot_ci
+# REQUIRE: NETWORKING
+# BEFORE: LOGIN
+
+# Add the following lines to /etc/rc.conf.local or /etc/rc.conf (in the disk
+# image, since this only runs on the first boot) to enable this:
+#
+# firstboot_ci_enable="YES"
+#
+
+. /etc/rc.subr
+
+: ${firstboot_ci_enable:="NO"}
+
+name="firstboot_ci"
+rcvar=firstboot_ci_enable
+start_cmd="firstboot_ci_run"
+stop_cmd=":"
+os_version=$(uname -K)
+os_arch=$(uname -p)
+metadir="/meta"
+
+firstboot_ci_run()
+{
+    if [ -f "$meta/test_zfs" ];then
+        /usr/src/release/ci/scripts/test/subr/run-kyua-zfs.sh
+        exit 0
+    fi
+    if [ -f "$meta/test_tcptestsuite" ];then
+        /usr/src/release/ci/scripts/test/subr/run-kyua-tcptestsuite.sh
+        exit 0
+    fi
+    if [ -f "$meta/test_ltp" ];then
+        /usr/src/release/ci/scripts/test/subr/run-kyua-ltp.sh
+        exit 0
+    fi
+    if [ -f "$meta/disable-zfs-tests" ];then
+        /usr/src/release/ci/scripts/test/subr/disable-zfs-tests.sh
+    fi
+    if [ -f "$meta/disable-dtrace-tests" ];then
+        /usr/src/release/ci/scripts/test/subr/disable-dtrace-tests.sh
+    fi
+    if [ -f "$meta/disable-disks-tests" ];then
+        /usr/src/release/ci/scripts/test/subr/disable-disks-tests.sh
+    fi
+    if [ -f "$meta/disable-notyet-tests" ];then
+        /usr/src/release/ci/scripts/test/subr/disable-notyet-tests.sh
+    fi
+    if [ ! -f "$meta/test_zfs" ] && [ ! -f "$meta/test_tcptestsuite" ] && [ ! -f "$meta/test_ltp" ];then
+        /usr/src/release/ci/scripts/test/subr/run-kyua.sh
+        exit 0
+    fi
+}
+
+load_rc_config $name
+run_rc_command "$1"
