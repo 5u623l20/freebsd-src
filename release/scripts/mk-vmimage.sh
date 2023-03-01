@@ -3,6 +3,9 @@
 # Copyright (c) 2014, 2015 The FreeBSD Foundation
 # All rights reserved.
 #
+# Portions of this software were developed by Muhammad Moinur Rahman
+# under sponsorship from the FreeBSD Foundation.
+#
 # This software was developed by Glen Barber under sponsorship
 # from the FreeBSD Foundation.
 #
@@ -31,7 +34,7 @@
 #
 # $FreeBSD$
 #
-
+set -ex
 usage() {
 	echo "${0} usage:"
 	echo "${@}"
@@ -41,13 +44,16 @@ usage() {
 main() {
 	local arg
 	VMCONFIG="/dev/null"
-	while getopts "C:c:d:F:f:i:o:s:S:" arg; do
+	while getopts "C:c:D:d:F:f:i:P:o:s:S:" arg; do
 		case "${arg}" in
 			C)
 				VMBUILDCONF="${OPTARG}"
 				;;
 			c)
 				VMCONFIG="${OPTARG}"
+				;;
+			D)
+				OBJDIR="${OPTARG}"
 				;;
 			d)
 				DESTDIR="${OPTARG}"
@@ -63,6 +69,9 @@ main() {
 				;;
 			o)
 				VMIMAGE="${OPTARG}"
+				;;
+			P)
+				PACKAGESYSTEM="${OPTARG}"
 				;;
 			s)
 				VMSIZE="${OPTARG}"
