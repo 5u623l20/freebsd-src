@@ -15,10 +15,10 @@ QEMU_MAX_MEM_SIZE=64
 
 portinstall-aarch64: portinstall-pkg .PHONY
 .if !exists(/usr/local/share/u-boot/u-boot-qemu-arm64/u-boot.bin)
-	env ASSUME_ALWAYS_YES=yes pkg install -y sysutils/u-boot-qemu-arm64
+	env ASSUME_ALWAYS_YES=yes pkg install sysutils/u-boot-qemu-arm64
 .endif
 
-# XXX: Nothing should be changed below this line unless explicitly required.
+# NOTE: Nothing should be changed below this line unless explicitly required.
 
 ci-buildworld-aarch64: ci-buildworld .PHONY
 

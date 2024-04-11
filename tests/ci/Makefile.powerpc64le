@@ -17,7 +17,7 @@ QEMU_MAX_MEM_SIZE=64
 portinstall-powerpc64le: portinstall-pkg .PHONY
 	@true
 
-# XXX: Nothing should be changed below this line unless explicitly required.
+# NOTE: Nothing should be changed below this line unless explicitly required.
 
 ci-buildworld-powerpc64le: ci-buildworld .PHONY
 

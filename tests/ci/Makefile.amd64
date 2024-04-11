@@ -15,7 +15,7 @@ QEMU_MAX_MEM_SIZE=128
 portinstall-amd64: portinstall-pkg .PHONY
 	@true
 
-# XXX: Nothing should be changed below this line unless explicitly required.
+# NOTE: Nothing should be changed below this line unless explicitly required.
 
 ci-buildworld-amd64: ci-buildworld .PHONY
 

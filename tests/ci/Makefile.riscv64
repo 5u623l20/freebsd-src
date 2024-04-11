@@ -15,13 +15,13 @@ QEMU_MAX_MEM_SIZE=64
 
 portinstall-riscv64: portinstall-pkg .PHONY
 .if !exists(/usr/local/share/opensbi/lp64/generic/firmware/fw_jump.elf)
-	env ASSUME_ALWAYS_YES=yes pkg install -y sysutils/opensbi
+	env ASSUME_ALWAYS_YES=yes pkg install sysutils/opensbi
 .endif
 .if !exists(/usr/local/share/u-boot/u-boot-qemu-riscv64/u-boot.bin)
-	env ASSUME_ALWAYS_YES=yes pkg install -y sysutils/u-boot-qemu-riscv64
+	env ASSUME_ALWAYS_YES=yes pkg install sysutils/u-boot-qemu-riscv64
 .endif
 
-# XXX: Nothing should be changed below this line unless explicitly required.
+# NOTE: Nothing should be changed below this line unless explicitly required.
 
 ci-buildworld-riscv64: ci-buildworld .PHONY
 

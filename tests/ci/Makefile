@@ -124,20 +124,20 @@ portinstall: portinstall-pkg portinstall-qemu portinstall-expect portinstall-${T
 
 portinstall-pkg: .PHONY
 .if !exists(/usr/local/sbin/pkg-static)
-	env ASSUME_ALWAYS_YES=yes pkg bootstrap -y
+	env ASSUME_ALWAYS_YES=yes pkg bootstrap
 .endif
 
 portinstall-qemu: portinstall-pkg .PHONY
 .if !exists(/usr/local/bin/qemu-${TARGET_ARCH}-static)
-	env ASSUME_ALWAYS_YES=yes pkg install -y emulators/qemu-user-static
+	env ASSUME_ALWAYS_YES=yes pkg install emulators/qemu-user-static
 .endif
 .if !exists(/usr/local/bin/qemu-system-${QEMU_ARCH})
-	env ASSUME_ALWAYS_YES=yes pkg install -y emulators/qemu@nox11
+	env ASSUME_ALWAYS_YES=yes pkg install emulators/qemu@nox11
 .endif
 
 portinstall-expect: portinstall-pkg .PHONY
 .if !exists(/usr/local/bin/expect)
-	env ASSUME_ALWAYS_YES=yes pkg install -y lang/expect
+	env ASSUME_ALWAYS_YES=yes pkg install lang/expect
 .endif
 
 beforeclean: .PHONY
