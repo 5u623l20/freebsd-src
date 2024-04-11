@@ -7,15 +7,13 @@
 # This software was developed by Cybermancer Infosec <bofh@FreeBSD.org>
 # under sponsorship from the FreeBSD Foundation.
 #
-# KEYWORD: firstboot
 # PROVIDE: freebsdci
 # REQUIRE: NETWORKING
 # BEFORE: LOGIN
+# KEYWORD: firstboot
 
 # This script is used to run the firstboot CI tests on the first boot of a
-# FreeBSD image.  It is enabled by default, but can be disabled by setting
-# freebsdci_enable="NO" in /etc/rc.conf.local or /etc/rc.conf. It is
-# automatically disabled after the first boot.
+# FreeBSD image. It is automatically disabled after the first boot.
 #
 # The script will run the firstboot CI tests and then shut down the system.
 # The tests are run in the foreground so that the system can shut down
@@ -31,16 +29,16 @@
 : ${freebsdci_enable:="NO"}
 
 name="freebsdci"
+desc="Run FreeBSD CI"
 rcvar=freebsdci_enable
 start_cmd="firstboot_ci_run"
 stop_cmd=":"
-os_version=$(uname -K)
 os_arch=$(uname -p)
 
 auto_shutdown()
 {
-	# XXX: Currently RISC-V and MIPS64 kernels lack the ability
-	#      to make qemu exit on shutdown.  Reboot instead;
+	# XXX: Currently RISC-V kernels lack the ability to
+	#      make qemu exit on shutdown. Reboot instead;
 	#      it makes qemu exit too.
 	case "$os_arch" in
 		riscv64)
@@ -63,10 +61,28 @@ smoke_tests()
 	echo "--------------------------------------------------------------"
 }
 
+full_tests()
+{
+	# Currently this is a placeholder.
+	# This will be used to add the full tests scenario those are run in
+	# the CI system
+	echo
+	echo "--------------------------------------------------------------"
+	echo "BUILD sequence COMPLETED"
+	echo "IMAGE sequence COMPLETED"
+	echo "BOOT sequence COMPLETED"
+	echo "TEST sequence STARTED"
+	echo "TEST sequence COMPLETED"
+	echo "INITIATING system SHUTDOWN"
+	echo "--------------------------------------------------------------"
+}
+
 firstboot_ci_run()
 {
 	if [ "$freebsdci_type" = "smoke" ]; then
 		smoke_tests
+	elif [ "$freebsdci_type" = "full" ]; then
+		full_tests
 	fi
 	auto_shutdown
 }
