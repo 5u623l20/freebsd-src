@@ -8,8 +8,7 @@
 # under sponsorship from the FreeBSD Foundation.
 #
 # PROVIDE: freebsdci
-# REQUIRE: NETWORKING
-# BEFORE: LOGIN
+# REQUIRE: LOGIN FILESYSTEMS
 # KEYWORD: firstboot
 
 # This script is used to run the firstboot CI tests on the first boot of a

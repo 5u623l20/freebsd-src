@@ -85,7 +85,7 @@ TIMEOUT=$$((${TIMEOUT_MS} / 1000))
 TIMEOUT_EXPECT=$$((${TIMEOUT} - 60))
 TIMEOUT_VM=$$((${TIMEOUT_EXPECT} - 120))
 .if exists(${.CURDIR}/Makefile.${TARGET_ARCH})
-.include "${.CURDIR}/Makefile.${TARGET_ARCH}"
+.	include "${.CURDIR}/Makefile.${TARGET_ARCH}"
 .endif
 .if ${TARGET_ARCH} != ${MACHINE_ARCH}
 .if ( ${TARGET_ARCH} != "i386" ) || ( ${MACHINE_ARCH} != "amd64" )
