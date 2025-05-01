@@ -214,7 +214,7 @@ smoke_ci_task:
     - sysctl -n kern.vm_guest
 
   ci_script:
-    - make -d v -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
+    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
 
   post_script:
     - df -m
@@ -238,7 +238,7 @@ full_ci_task:
     - sysctl -n kern.vm_guest
 
   ci_script:
-    - make -d v -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=full ci
+    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=full ci
 
   post_script:
     - df -m
