@@ -132,7 +132,7 @@ VM_MEM_SIZE=${QEMU_MAX_MEM_SIZE}g
 VM_MEM_SIZE=${VM_MEM}g
 .endif
 ISNESTEDVIRT!=sysctl -n kern.vm_guest 2>/dev/null || true
-.if ISNESTEDVIRT != "none"
+.if ${ISNESTEDVIRT} != "none"
 USE_QEMU?=1
 .endif
 KLDFILEMONISLOADED!=kldload -q -n filemon 2>/dev/null && echo "1" || echo "0"
