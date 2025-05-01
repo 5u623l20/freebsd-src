@@ -40,6 +40,10 @@ TARGET_ARCH=	${TARGET}
 .endif
 IMAKE=		${MAKE} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}
 
+.if !defined(CIENV) || empty(CIENV)
+CIENV=		local
+.endif
+
 .if defined(CROSS_TOOLCHAIN) || !empty(CROSS_TOOLCHAIN)
 CROSS_TOOLCHAIN_PARAM=	"CROSS_TOOLCHAIN=${CROSS_TOOLCHAIN}"
 .endif
@@ -74,7 +78,11 @@ VMSIZE?=	6g
 CITYPE?=	full
 META_TAR!=mktemp /tmp/meta.XXXXXX
 META_DIR!=mktemp -d /tmp/meta.XXXXXX
+.if ${CIENV} == "local"
 META_DIROUT!=mktemp -d /tmp/meta.XXXXXX
+.elif ${CIENV} == "cirrus"
+META_DIROUT=/tmp/cirrus-ci-build/artifacts
+.endif
 DISC_CAM!=truncate -s 128m /tmp/disk-cam
 EXTRA_DISK_NUM?=5
 DISK_NUMBERS!=jot - 1 ${EXTRA_DISK_NUM}
@@ -202,6 +210,9 @@ ci-create-meta: .PHONY
 	tar rvf ${META_TAR} -C ${META_DIR} .
 
 ci-extract-meta: .PHONY
+.if ${CIENV} != "local"
+	mkdir -p ${META_DIROUT}
+.endif
 	tar xfv ${META_TAR} -C ${META_DIROUT}
 	@echo "Extracted kyua reports to ${META_DIROUT}"
 
