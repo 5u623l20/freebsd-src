@@ -132,9 +132,11 @@ VM_MEM_SIZE=${QEMU_MAX_MEM_SIZE}g
 VM_MEM_SIZE=${VM_MEM}g
 .endif
 KLDVMMISLOADED!=kldload -q -n vmm 2>/dev/null && echo "1" || echo "0"
+.info KLDVMMISLOADED=${KLDVMMISLOADED}
 .if ${KLDVMMISLOADED} == "0"
 USE_QEMU?=1
 .endif
+.info USE_QEMU=${USE_QEMU}
 KLDFILEMONISLOADED!=kldload -q -n filemon 2>/dev/null && echo "1" || echo "0"
 .if ${KLDFILEMONISLOADED} == "1"
 METAMODE?=-DWITH_META_MODE
