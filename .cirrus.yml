@@ -203,6 +203,7 @@ precommit_task:
         TARGET: arm64
         TARGET_ARCH: aarch64
   timeout_in: 120m
+  trigger_type: manual
 
   setup_script:
     - uname -a
