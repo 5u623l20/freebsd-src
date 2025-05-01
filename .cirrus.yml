@@ -210,9 +210,10 @@ precommit_task:
     - gpart show
     - df -m
     - pkg --version
+    - sysctl -n kern.vm_guest
 
   ci_script:
-    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
+    - make -d v -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
 
   post_script:
     - df -m
@@ -238,9 +239,10 @@ full_ci_task:
     - gpart show
     - df -m
     - pkg --version
+    - sysctl -n kern.vm_guest
 
   ci_script:
-    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=full CIENV=cirrus ci
+    - make -d v -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=full ci
 
   post_script:
     - df -m
