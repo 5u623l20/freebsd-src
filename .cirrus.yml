@@ -166,8 +166,8 @@ task:
   - su user -c "/usr/libexec/flua tools/pkgbase/metalog_reader.lua -c /usr/obj/$(pwd -P)/${TARGET}.${TARGET_ARCH}/worldstage/METALOG"
 
   test_script:
-  - sh .cirrus-ci/pkg-install.sh qemu-nox11
-  - sh tools/boot/ci-qemu-test.sh
+    - sh .cirrus-ci/pkg-install.sh qemu-nox11
+    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
 
   make_sysent_script:
   # Check that make sysent results were committed if required
@@ -189,60 +189,3 @@ task:
   post_script:
   - df -m
   - du -m -s /usr/obj
-
-smoke_ci_task:
-  only_if: $CIRRUS_BRANCH == 'ffci'
-  matrix:
-    - name: amd64 smoke test using internal ci systems
-      only_if: $CIRRUS_REPO_FULL_NAME != 'freebsd/freebsd-src'
-      env:
-        TARGET: amd64
-        TARGET_ARCH: amd64
-    - name: aarch64 smoke test using internal ci systems
-      only_if: $CIRRUS_REPO_FULL_NAME != 'freebsd/freebsd-src'
-      env:
-        TARGET: arm64
-        TARGET_ARCH: aarch64
-
-  timeout_in: 120m
-
-  setup_script:
-    - uname -a
-    - gpart show
-    - df -m
-    - pkg --version
-
-  ci_script:
-    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
-
-  post_script:
-    - df -m
-    - du -m -s /usr/obj
-
-full_ci_task:
-  only_if: $CIRRUS_BRANCH == 'ffci'
-  matrix:
-    - name: amd64 full test using internal ci systems
-      only_if: $CIRRUS_REPO_FULL_NAME != 'freebsd/freebsd-src'
-      env:
-        TARGET: amd64
-        TARGET_ARCH: amd64
-  timeout_in: 120m
-
-  setup_script:
-    - uname -a
-    - gpart show
-    - df -m
-    - pkg --version
-
-  ci_script:
-    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=full ci
-
-  post_script:
-    - df -m
-    - du -m -s /usr/obj
-
-  always:
-    junit_artifacts:
-      path: "artifacts/**.xml"
-      format: junit
