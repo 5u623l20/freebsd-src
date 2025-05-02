@@ -206,20 +206,16 @@ precommit_task:
         TARGET_ARCH: aarch64
   timeout_in: 120m
   install_script:
-    - sh .cirrus-ci/pkg-install.sh qemu-user-static qemu-nox11 git-lite
+    - sh .cirrus-ci/pkg-install.sh qemu-user-static qemu-nox11
 
   setup_script:
     - uname -a
     - gpart show
     - df -m
     - pkg --version
-    - pw useradd -n user -m
-    - mkdir -p /usr/obj/$(pwd -P)
-    - chown user:user /usr/obj/$(pwd -P)
-    - su user -c "git config --global --add safe.directory $(pwd -P)"
 
   ci_script:
-    - su user -c "make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci"
+    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
 
   post_script:
     - df -m
