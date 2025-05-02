@@ -199,28 +199,27 @@ precommit_task:
       env:
         TARGET: amd64
         TARGET_ARCH: amd64
-        CROSS_TOOLCHAIN: llvm19
-        TOOLCHAIN_PKG: ${CROSS_TOOLCHAIN}-lite
     - name: aarch64 smoke test using internal ci systems using llvm19
       only_if: $CIRRUS_REPO_FULL_NAME != 'freebsd/freebsd-src'
       env:
         TARGET: arm64
         TARGET_ARCH: aarch64
-        CROSS_TOOLCHAIN: llvm19
-        TOOLCHAIN_PKG: ${CROSS_TOOLCHAIN}-lite
-
   timeout_in: 120m
   install_script:
-    - sh .cirrus-ci/pkg-install.sh ${TOOLCHAIN_PKG}
+    - sh .cirrus-ci/pkg-install.sh qemu-user-static qemu-nox11 git-lite
 
   setup_script:
     - uname -a
     - gpart show
     - df -m
     - pkg --version
+    - pw useradd -n user -m
+    - mkdir -p /usr/obj/$(pwd -P)
+    - chown user:user /usr/obj/$(pwd -P)
+    - su user -c "git config --global --add safe.directory $(pwd -P)"
 
   ci_script:
-    - make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci
+    - su user -c "make -C tests/ci TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} CITYPE=smoke ci"
 
   post_script:
     - df -m
