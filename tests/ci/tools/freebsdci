@@ -69,6 +69,8 @@ full_tests()
 	echo "--------------------------------------------------------------"
 	echo "BOOT sequence COMPLETED"
 	echo "TEST sequence STARTED"
+	file -s ${tardev}
+	ls -la /dev
 	if [ "${istar}" -eq 1 ]; then
 		rm -fr ${metadir}
 		mkdir -p ${metadir}
