@@ -1,4 +1,3 @@
-
 compute_engine_instance:
   # Image list available via
   # gcloud compute images list --project freebsd-org-cloud-dev --no-standard-images
